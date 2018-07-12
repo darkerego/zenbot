@@ -56,6 +56,16 @@ let Phenotypes = require('../../lib/phenotype')
   , _ = require('underscore')
   , json2csv = require('json2csv')
 
+/*const Json2csv = require('json2csv').Parser;
+
+try {
+  const parser = new Json2csvParser(opts);
+  const csv = parser.parse(myData);
+  console.log(csv);
+} catch (err) {
+  console.error(err);
+} */
+
 let PARALLEL_LIMIT = (process.env.PARALLEL_LIMIT && +process.env.PARALLEL_LIMIT) || require('os').cpus().length
 
 simArgs = Object.assign({}, argv)
@@ -238,7 +248,18 @@ function runAutoBacktester () {
 
     fieldsGeneral = fieldsGeneral.concat(['selector', 'fitness', 'vsBuyHold', 'wlRatio', 'frequency', 'strategy', 'order_type', 'endBalance', 'buyHold', 'wins', 'losses', 'period_length', 'min_periods', 'days', 'commandString'])
     fieldNamesGeneral = fieldNamesGeneral.concat(['Selector', 'Fitness', 'VS Buy Hold (%)', 'Win/Loss Ratio', '# Trades/Day', 'Strategy', 'Order Type', 'Ending Balance ($)', 'Buy Hold ($)', '# Wins', '# Losses', 'Period', 'Min Periods', '# Days', 'Command'])
-
+    // darkerego 7/12/18 - this works on my system (ubuntu , latest ver. node)
+    const json2csv = require('json2csv').parse;
+    try {
+        const csv = json2csv(results,fieldsGeneral,fieldNamesGeneral);
+         console.log(csv);
+         let csvFileName = `simulations/${population_data}/results_${population_data}.csv`
+         console.log(csvFileName)
+         Backtester.writeFileAndFolder(csvFileName, csv)
+        } catch (err) {
+        console.error(err); 
+        }
+    /* broken on my system
     let dataCSV = json2csv({
       data: results,
       fields: fieldsGeneral,
@@ -247,7 +268,7 @@ function runAutoBacktester () {
     let csvFileName = `simulations/${population_data}/results_${population_data}.csv` // MS Word whines about opening multiple files of the same name
     console.log(csvFileName)
     Backtester.writeFileAndFolder(csvFileName, dataCSV)
-
+    */
 
     // If we didn't sort them before, definitely sort them now to get the best one
     if (!argv.sort_results)
@@ -275,5 +296,4 @@ let writeSimDataFile = (iteration, data) => {
 
 Backtester.deLint()
 runAutoBacktester()
-
 
